@@ -16,7 +16,6 @@ class App(ctk.CTk):
         self.set_root()
         self.set_upperframe()
         self.set_underframe()
-        # self.mainloop()
     
     # Set up root window
     def set_root(self):
@@ -30,7 +29,8 @@ class App(ctk.CTk):
         self.title("EDINET Explorer")
         self.resizable(False, False)
         self.bind("<Escape>", lambda event: self.quit())
-        self.iconbitmap("icon_win.ico")
+        win_icon_path = os.path.join(os.getcwd(), "edinet_explorer/resources/icons/icon_win.ico") # Add icon using relative path
+        self.iconbitmap(win_icon_path)
 
         self.label_font = ctk.CTkFont(family="Roboto", size = 15)
     
@@ -72,7 +72,8 @@ class App(ctk.CTk):
 
         # Get Directory from File Explorer
         self.folder_selector = ctk.CTkEntry(file_frame, width = 550)
-        file_icon = ctk.CTkImage(Image.open("folder.png"), size=(20, 20))
+        file_icon_path = os.path.join(os.getcwd(), "edinet_explorer/resources/icons/folder.png")    # Add icon using relative path
+        file_icon = ctk.CTkImage(Image.open(file_icon_path), size=(20, 20))
         folder_selector_button = ctk.CTkButton(file_frame, fg_color = '#dbe0eb', 
                                                image = file_icon, 
                                                text = "", 
