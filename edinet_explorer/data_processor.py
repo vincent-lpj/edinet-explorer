@@ -10,30 +10,37 @@ import json
 import pandas as pd
 
 class Period:
-    def __init__(self, api_key: str, start_date: datetime.date, end_date: datetime.date, json_path = False) -> None:
-        self.get_basics(api_key, start_date, end_date, json_path)
+    def __init__(self, api_key = None, start_date = None, end_date = None, json_path = None) -> None:
+        self.info_url = "https://api.edinet-fsa.go.jp/api/v2/documents.json"
+        self.doc_url = "https://api.edinet-fsa.go.jp/api/v2/documents/"
 
-    def get_basics(self, api_key,start_date, end_date,json_path):
-        if json_path:
+        if json_path is not None:
+            self._init_from_json(json_path)
+        elif api_key is not None and start_date is not None and end_date is not None:
+            self._get_basics(api_key, start_date, end_date)
+        
+        else:
+            raise ValueError("Please enter api_key, start_date, end_date or json_path")
+
+    def _init_from_json(self,json_path):
+        if os.path.exists(json_path) == False:
+            raise ValueError("can not find json file")
+        else:
             with open(json_path,"r") as f:
                 self.json = json.load(f)
-            self.info_url = self.json["info_url"]
-            self.doc_url = self.json["doc_url"]
             self.dates = self.json["dates"]
             self.results = self.json["results"]
             self.start_date = datetime.datetime.strptime(self.dates[0],'%Y/%m/%d')
             self.end_date = datetime.datetime.strptime(self.dates[-1],'%Y/%m/%d')
             self.days = int((self.end_date - self.start_date).days)
 
-        else:
-            self.info_url = "https://api.edinet-fsa.go.jp/api/v2/documents.json"
-            self.doc_url = "https://api.edinet-fsa.go.jp/api/v2/documents/"
-            self.start_date = start_date
-            self.end_date = end_date
-            self.days = int((self.end_date - self.start_date).days)
-            self.dates =  [datetime.datetime.strftime(start_date + datetime.timedelta(days), '%Y/%m/%d') for days in range(self.days)]
-            self.api_key = api_key
-            self.results = dict()
+    def _get_basics(self, api_key,start_date, end_date):
+        self.api_key = api_key
+        self.start_date = start_date
+        self.end_date = end_date
+        self.days = int((self.end_date - self.start_date).days)
+        self.dates =  [datetime.datetime.strftime(start_date + datetime.timedelta(days), '%Y/%m/%d') for days in range(self.days)]
+        self.results = dict()
 
     def get_results(self, show_progress = False):
         count = 1
@@ -120,18 +127,6 @@ class Period:
             os.remove(my_zip)
         shutil.rmtree(f"{folder}/_zip_dir")
         
-    def save_json(self, folder:str):
-        self.json = {
-            "info_url": self.info_url,
-            "doc_url": self.doc_url,
-            "dates": self.dates,
-            "results": self.results
-        }
-
-        json_dir  = f"{folder}/period.json"
-        with open(json_dir, "w") as f:
-            json.dump(self.results, f)
-
     def get_auditors(self):
         result_dict = {}
         for key in self.results.keys():
@@ -222,3 +217,14 @@ class Period:
 
             else: pass
         return result_dict
+
+    def save_json(self, folder:str):
+        self.json = {
+            "dates": self.dates,
+            "results": self.results
+        }
+
+        json_dir  = os.path.join(folder, "period.json")
+        
+        with open(json_dir, "w") as f:
+            json.dump(self.json, f)

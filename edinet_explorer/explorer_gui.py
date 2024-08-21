@@ -13,6 +13,7 @@ import os
 class App(ctk.CTk):
     def __init__(self):
         super().__init__()
+        ctk.set_appearance_mode("light")  # ignore dark mode
         self.set_root()
         self.set_upperframe()
         self.set_underframe()
@@ -29,7 +30,7 @@ class App(ctk.CTk):
         self.title("EDINET Explorer")
         self.resizable(False, False)
         self.bind("<Escape>", lambda event: self.quit())
-        win_icon_path = os.path.join(os.getcwd(), "edinet_explorer/resources/icons/icon_win.ico") # Add icon using relative path
+        win_icon_path = os.path.join(os.getcwd(), "edinet_explorer", "resources","icons","icon_win.ico") # Add icon using relative path
         self.iconbitmap(win_icon_path)
 
         self.label_font = ctk.CTkFont(family="Roboto", size = 15)
@@ -62,6 +63,29 @@ class App(ctk.CTk):
         filename = ctk.filedialog.askdirectory()
         self.folder_selector.insert(ctk.END, filename)
         self.folder_selector.configure(state = "disabled")
+        for file in os.listdir(filename):
+            if file == "period.json":
+                message_continue = CTkMessagebox(title = "Continue with Previous Work",
+                                                fg_color = "transparent",
+                                                message= "It seems that there has been files downloaded, would you like to continue?",
+                                                icon="check",
+                                                option_1 = "No",
+                                                option_2 = "OK")
+                
+                if message_continue.get() == "OK":
+                    self.period = Period(json_path = os.path.join(filename,file))
+                    self.parse_button.configure(state = "normal") 
+                    self.download_button.configure(state = "disabled") 
+                    try:
+                        self.treeview.destroy()
+                    except AttributeError: 
+                        pass
+                    except Exception:
+                        pass
+                    finally: 
+                        self.set_treeview()
+                    break
+                else: pass
     
     def set_fileinfo(self):
         file_frame = ctk.CTkFrame(self.uppermiddle, fg_color = "transparent")
@@ -72,7 +96,7 @@ class App(ctk.CTk):
 
         # Get Directory from File Explorer
         self.folder_selector = ctk.CTkEntry(file_frame, width = 550)
-        file_icon_path = os.path.join(os.getcwd(), "edinet_explorer/resources/icons/folder.png")    # Add icon using relative path
+        file_icon_path = os.path.join(os.getcwd(), "edinet_explorer","resources","icons","folder.png")    # Add icon using relative path
         file_icon = ctk.CTkImage(Image.open(file_icon_path), size=(20, 20))
         folder_selector_button = ctk.CTkButton(file_frame, fg_color = '#dbe0eb', 
                                                image = file_icon, 
@@ -271,16 +295,17 @@ class App(ctk.CTk):
                           icon="check",
                           option_1 = "OK")      # Show success message 
                 self.parse_button.configure(state = "normal") # Enable parse button only when download succeed 
+                self.download_button.configure(state = "disabled") 
                 self.period.save_json(folder = self.folder_selector.get())
         else:
             return
 
     # Set the buttons for download and parse
     def set_download_parse(self):
-        download_button = ctk.CTkButton(self.upperright , fg_color = "#00a0a0", 
+        self.download_button = ctk.CTkButton(self.upperright , fg_color = "#00a0a0", 
                                         text = "Download", font = ctk.CTkFont(family = "Arial",weight = "bold"),
                                         command = self.download)
-        download_button.pack(expand = True)
+        self.download_button.pack(expand = True)
 
         self.parse_button = ctk.CTkButton(self.upperright , fg_color = "#00a0a0", 
                                           text = "Parse", font = ctk.CTkFont(family = "Arial",weight = "bold"), 
