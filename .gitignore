@@ -16,3 +16,6 @@ edinet-explorer-env/
 .vscode/launch.json
 .vscode/tasks.json
 
+# Local test file
+local_test.py
+
