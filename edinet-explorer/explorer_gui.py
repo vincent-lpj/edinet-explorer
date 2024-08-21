@@ -16,7 +16,7 @@ class App(ctk.CTk):
         self.set_root()
         self.set_upperframe()
         self.set_underframe()
-        self.mainloop()
+        # self.mainloop()
     
     # Set up root window
     def set_root(self):
