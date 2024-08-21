@@ -9,6 +9,9 @@ edinet-explorer-env/
 # PyInstaller
 *.manifest
 *.spec
+# Ignore PyInstaller build and distribution directories
+/build/
+/dist/
 
 # VS Code specific
 .vscode/
