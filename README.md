@@ -9,6 +9,7 @@
 - [User Guidance Compliance](#user-guidance-compliance)
 - [Contributing](#contributing)
 - [License](#license)
+- [Acknowledgments](#Acknowledgments)
 
 ## Features
 - **Data Collection**: Easily collect annual reports from the EDINET API.
@@ -32,3 +33,6 @@ By using this tool, you agree to adhere to these guidelines and take responsibil
 
 ### License
 This project is licensed under the MIT License - see the LICENSE file for details.
+
+## Acknowledgments
+The icon used in this project was generated with the assistance of [ChatGPT by OpenAI](https://openai.com/chatgpt).
