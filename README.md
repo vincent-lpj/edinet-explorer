@@ -5,9 +5,8 @@
 ## Table of Contents
 - [Features](#features)
 - [Installation](#installation)
-- [Usage](#usage)
 - [User Guidance Compliance](#user-guidance-compliance)
-- [Contributing](#contributing)
+- [Contribution Guidelines](#contribution-guidelines)
 - [License](#license)
 - [Acknowledgments](#Acknowledgments)
 
@@ -26,10 +25,14 @@
 ### Steps
 to be added
 
-### User Guidance Compliance
+## User Guidance Compliance
 When using EDINET Explorer, you are accessing data from EDINET, which is managed by the Financial Services Agency of Japan. Please ensure that your use of this tool complies with the EDINET User Guidelines, which govern the proper use of data provided through their services. Misuse of the data or violation of these guidelines can lead to legal consequences.
 
 By using this tool, you agree to adhere to these guidelines and take responsibility for ensuring that your actions conform to the rules set forth by EDINET.
+
+## Contribution Guidelines
+Thank you for your interest in this project! As it is currently in the early stages of development, I am not yet accepting direct contributions (such as commits or pull requests). However, I warmly welcome any feedback, suggestions, or bug reports. If you have any thoughts or ideas to share, please feel free to open an issue.
+
 
 ### License
 This project is licensed under the MIT License - see the LICENSE file for details.
