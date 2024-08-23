@@ -8,6 +8,7 @@ import re
 import csv
 import json
 import pandas as pd
+from typing import Literal
 
 class Period:
     def __init__(self, api_key = None, start_date = None, end_date = None, json_path = None) -> None:
@@ -66,65 +67,92 @@ class Period:
                 yield count
             else: pass
     
+    @staticmethod
+    def search_file(my_zip, folder, file_type: Literal["audit_csv", "annual_csv", "audit_xbrl", "annual_xbrl"]) -> str:
+        name_dic = {"audit_csv": "aai", "annual_csv": "asr", "audit_xbrl": "aai", "annual_xbrl": "asr"}
+        type_dic = {"audit_csv": ".csv", "annual_csv": ".csv", "audit_xbrl": ".xbrl", "annual_xbrl": ".xbrl"}
+        file_dir = ""
+
+        with zipfile.ZipFile(my_zip) as zip_file:
+            for member in zip_file.namelist():
+                filename = os.path.basename(member)
+                if filename.endswith(type_dic[file_type]):
+                    identifier = filename.split("-")[1]    
+                    if identifier == name_dic[file_type]:       # only keep target report
+                        if not filename:                        # skip directories
+                            continue
+                        file_dir = os.path.join(folder, filename)        # copy file (taken from zipfile's extract)
+                        source = zip_file.open(member)
+                        target = open(file_dir, "wb")
+                        with source, target:
+                            shutil.copyfileobj(source, target)
+                    else:
+                        pass
+                else:
+                    pass
+        return file_dir
+
+    def api_download(self, key, folder, ref_num: int) -> None:
+        sleep(0.2)
+        if ref_num not in [1,2,5]:
+            return None
+        else:
+            params = {"type": ref_num, "Subscription-Key": self.api_key}
+            res = requests.get(f"{self.doc_url}{key}", params = params) 
+
+            if ref_num in [1,5]:
+                my_file = f"{folder}/_zip_dir/{key}.zip"
+            elif ref_num == 2:
+                my_file = f"{folder}/pdf/{key}.pdf"
+            else: pass
+
+            if res.status_code == 200:
+                with open(my_file, "wb") as file:
+                    for chunk in res.iter_content(chunk_size = 1024):
+                        file.write(chunk)
+                return my_file
+            else:
+                return None
+
+
     def get_documents(self, folder:str, show_progress = False):
         count = 0
-        folder += "/xbrl_csv"
-        if not os.path.exists(folder):
-            os.makedirs(folder)
-        os.makedirs(f"{folder}/_zip_dir")
+
+        # Assign folder paths
+        audit_csv_folder = os.path.join(folder, "audit_csv")
+        annual_csv_folder = os.path.join(folder, "annual_csv")
+        audit_xbrl_folder = os.path.join(folder, "audit_xbrl")
+        annual_xbrl_folder = os.path.join(folder, "annual_xbrl")
+        pdf_folder = os.path.join(folder, "pdf")
+        tempo_file = os.path.join(folder, "_zip_dir")
+
+        # List of folder paths
+        folders = [audit_csv_folder, annual_csv_folder, audit_xbrl_folder, annual_xbrl_folder, pdf_folder, tempo_file]
+
+        # Create Folders
+        for folder_path in folders:
+            if not os.path.exists(folder_path):
+                os.makedirs(folder_path)
+
         for key in self.results.keys():
-            my_zip = f"{folder}/_zip_dir/{key}.zip"
-            params = {"type": 5, "Subscription-Key": self.api_key }
-            res = requests.get(f"{self.doc_url}{key}", params = params) 
-            sleep(0.2)
-            with open(my_zip, "wb") as file:
-                for chunk in res.iter_content(chunk_size = 1024):
-                    file.write(chunk)
+            result_dict = {"xbrl": 1, "pdf": 2, "csv": 5}
+            for download_type in result_dict.keys():
+                self.api_download(key, folder, result_dict[download_type])
 
-            with zipfile.ZipFile(my_zip) as zip_file:
-                for member in zip_file.namelist():
-                    filename = os.path.basename(member)
-                    # only keep audit report
-                    identifier = filename.split("-")[1]    
-                    if identifier == "aai":
-                        # skip directories
-                        if not filename:
-                            continue
-                        # copy file (taken from zipfile's extract)
-                        csv_dir = os.path.join(folder, filename)
-                        source = zip_file.open(member)
-                        target = open(csv_dir, "wb")
-                        with source, target:
-                            shutil.copyfileobj(source, target)
-                        # add csv_dir to self attributes here
-                        self.results[key]["audit_csv"] = csv_dir
-                        break
-                    else:
-                        self.results[key]["audit_csv"] = ""
+            csv_zip = self.api_download(key, folder, result_dict["csv"])
+            self.results[key]["audit_csv"] = self.search_file(csv_zip, folder = audit_csv_folder, file_type = "audit_csv")
+            self.results[key]["annual_csv"] = self.search_file(csv_zip, folder = annual_csv_folder, file_type = "annual_csv")
+            os.remove(csv_zip)
 
-                for member in zip_file.namelist():
-                    filename = os.path.basename(member)
-                    # only keep audit report
-                    identifier = filename.split("-")[1]    
-                    if identifier == "asr":
-                        # skip directories
-                        if not filename:
-                            continue
-                        # copy file (taken from zipfile's extract)
-                        csv_dir = os.path.join(folder, filename)
-                        source = zip_file.open(member)
-                        target = open(csv_dir, "wb")
-                        with source, target:
-                            shutil.copyfileobj(source, target)
-                        # add csv_dir to self attributes here
-                        self.results[key]["annual_csv"] = csv_dir
-                        break
-                    else:
-                        self.results[key]["annual_csv"] = ""
-        
+            self.results[key]["pdf"] = self.api_download(key, folder, result_dict["pdf"])
+
+            xbrl_zip = self.api_download(key, folder, result_dict["xbrl"])
+            self.results[key]["audit_xbrl"] = self.search_file(csv_zip, folder = audit_xbrl_folder, file_type = "audit_xbrl")
+            self.results[key]["annual_xbrl"] = self.search_file(csv_zip, folder = annual_xbrl_folder, file_type = "annual_xbrl")
+            os.remove(xbrl_zip)
+
             count += 1
             if show_progress: yield count
-            os.remove(my_zip)
         shutil.rmtree(f"{folder}/_zip_dir")
         
     def get_auditors(self):
@@ -228,3 +256,4 @@ class Period:
         
         with open(json_dir, "w") as f:
             json.dump(self.json, f)
+
