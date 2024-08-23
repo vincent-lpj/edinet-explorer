@@ -10,6 +10,7 @@ import datetime
 import requests
 import os
 import sys
+import webbrowser
 
 class App(ctk.CTk):
     def __init__(self):
@@ -17,8 +18,8 @@ class App(ctk.CTk):
         ctk.set_appearance_mode("light")  # ignore dark mode
         self._set_application_basics()
         self.set_root()
-        self.set_upperframe()
-        self.set_underframe()
+        self.set_menubar()
+        self.set_main()
     
     def _set_application_basics(self):
         if getattr(sys,"frozen",False):
@@ -36,7 +37,7 @@ class App(ctk.CTk):
         screen_height = self.winfo_screenheight()
         x = (screen_width - width - 1000) // 2
         y = (screen_height - height - 600) // 2
-        self.geometry(f"1000x600+{x}+{y}")
+        self.geometry(f"1000x620+{x}+{y}")
         self.title("EDINET Explorer")
         self.resizable(False, False)
         self.bind("<Escape>", lambda event: self.quit())
@@ -45,8 +46,25 @@ class App(ctk.CTk):
         self.label_font = ctk.CTkFont(family="Roboto", size = 15)
     
     # Add widget to app
+    @staticmethod
+    def about_git():
+        git_repo = "https://github.com/vincent-lpj/edinet-explorer"
+        webbrowser.open(git_repo)
+
+    def set_menubar(self):
+        menu_bar = MenuBar(self, background = "#e1edf0")
+        about_menu = menu_bar.add_menu("About", background = "#e1edf0" , font = self.label_font)
+        about_menu.add_command(label = "GitHub", command = self.about_git)
+        menu_bar.place()
+    
+    def set_main(self):
+        self.main_frame = ctk.CTkFrame(self, height = 600)
+        self.main_frame.pack(side="top", fill="x")
+        self.set_upperframe()
+        self.set_underframe()
+
     def set_upperframe(self):
-        self.upper = ctk.CTkFrame(self, fg_color = "#e1edf0")
+        self.upper = ctk.CTkFrame(self.main_frame, fg_color = "#e1edf0")
         self.upper.place(rely = 0, relx = 0, relwidth = 1, relheight = 0.25, anchor = "nw")
 
         # Left Frame
@@ -65,7 +83,7 @@ class App(ctk.CTk):
         self.set_download_parse()
     
     def set_underframe(self):
-        self.under = ctk.CTkFrame(self, fg_color = "#dbe0eb")
+        self.under = ctk.CTkFrame(self.main_frame, fg_color = "#dbe0eb")
         self.under.place(rely = 0.25, relx = 0, relwidth = 1, relheight = 0.75, anchor = "nw")
     
     def file_to_entry(self):
@@ -545,3 +563,25 @@ class App(ctk.CTk):
                         icon="check", 
                         option_1="Ok")
         else: pass
+
+class MenuBar(tk.Frame):
+    def __init__(self, master, background: str = "white"):
+        tk.Frame.__init__(self, 
+                          master, 
+                          bd=1,             # Screen units from boarder
+                          relief='flat',    # 3d off
+                          background = background,
+                          height = 20)    
+        self.pack(side="top", fill="x")     # Place the frame at the top-left corner
+    
+    def add_menu(self, text: str, background: str = "white", font = None) -> tk.Menu:
+        menu_button = tk.Menubutton(self, text = text, background = background)
+        if font is not None:
+            menu_button.configure(font = font)
+            menu_button.update_idletasks()
+        else: 
+            pass
+        button_menu = tk.Menu(menu_button,tearoff=0, background = background)
+        menu_button.config(menu = button_menu )
+        menu_button.pack(side='left', ipadx = 5)
+        return button_menu
