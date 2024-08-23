@@ -103,7 +103,7 @@ class Period:
             if ref_num in [1,5]:
                 my_file = f"{folder}/_zip_dir/{key}.zip"
             elif ref_num == 2:
-                my_file = f"{folder}/pdf/{key}.pdf"
+                my_file = f"{folder}/data/pdf/{key}.pdf"
             else: pass
 
             if res.status_code == 200:
@@ -114,42 +114,65 @@ class Period:
             else:
                 return None
 
+    @staticmethod
+    def check_make(*args):
+        for arg in args:
+            if not os.path.exists(arg):
+                os.makedirs(arg)
+            else:
+                pass
 
-    def get_documents(self, folder:str, show_progress = False):
+    def get_documents(self, folder:str, show_progress = False, **kwargs):
         count = 0
+        # Create data root path
+        data_folder = os.path.join(folder, "data")
+        tempo_file = os.path.join(folder, "_zip_dir")
+        self.check_make(data_folder,tempo_file)
 
         # Assign folder paths
-        audit_csv_folder = os.path.join(folder, "audit_csv")
-        annual_csv_folder = os.path.join(folder, "annual_csv")
-        audit_xbrl_folder = os.path.join(folder, "audit_xbrl")
-        annual_xbrl_folder = os.path.join(folder, "annual_xbrl")
-        pdf_folder = os.path.join(folder, "pdf")
-        tempo_file = os.path.join(folder, "_zip_dir")
+        if kwargs.get("csv", False) == True:
+            audit_csv_folder = os.path.join(data_folder, "audit_csv")
+            annual_csv_folder = os.path.join(data_folder, "annual_csv")
+            self.check_make(audit_csv_folder, annual_csv_folder)
+        else:
+            pass
 
-        # List of folder paths
-        folders = [audit_csv_folder, annual_csv_folder, audit_xbrl_folder, annual_xbrl_folder, pdf_folder, tempo_file]
+        if kwargs.get("xbrl", False) == True:
+            audit_xbrl_folder = os.path.join(data_folder, "audit_xbrl")
+            annual_xbrl_folder = os.path.join(data_folder, "annual_xbrl")
+            self.check_make(audit_xbrl_folder, annual_xbrl_folder)
+        else:
+            pass
 
-        # Create Folders
-        for folder_path in folders:
-            if not os.path.exists(folder_path):
-                os.makedirs(folder_path)
+        if kwargs.get("pdf", False) == True:
+            pdf_folder = os.path.join(data_folder, "pdf")
+            self.check_make(pdf_folder)
+        else:
+            pass
 
         for key in self.results.keys():
             result_dict = {"xbrl": 1, "pdf": 2, "csv": 5}
-            for download_type in result_dict.keys():
-                self.api_download(key, folder, result_dict[download_type])
 
-            csv_zip = self.api_download(key, folder, result_dict["csv"])
-            self.results[key]["audit_csv"] = self.search_file(csv_zip, folder = audit_csv_folder, file_type = "audit_csv")
-            self.results[key]["annual_csv"] = self.search_file(csv_zip, folder = annual_csv_folder, file_type = "annual_csv")
-            os.remove(csv_zip)
+            if kwargs.get("xbrl", False) == True:
+                xbrl_zip = self.api_download(key, folder, result_dict["xbrl"])
+                self.results[key]["audit_xbrl"] = self.search_file(xbrl_zip, folder = audit_xbrl_folder, file_type = "audit_xbrl")
+                self.results[key]["annual_xbrl"] = self.search_file(xbrl_zip, folder = annual_xbrl_folder, file_type = "annual_xbrl")
+                os.remove(xbrl_zip)
+            else: 
+                pass
 
-            self.results[key]["pdf"] = self.api_download(key, folder, result_dict["pdf"])
+            if kwargs.get("csv", False) == True:
+                csv_zip = self.api_download(key, folder, result_dict["csv"])
+                self.results[key]["audit_csv"] = self.search_file(csv_zip, folder = audit_csv_folder, file_type = "audit_csv")
+                self.results[key]["annual_csv"] = self.search_file(csv_zip, folder = annual_csv_folder, file_type = "annual_csv")
+                os.remove(csv_zip)
+            else: 
+                pass
 
-            xbrl_zip = self.api_download(key, folder, result_dict["xbrl"])
-            self.results[key]["audit_xbrl"] = self.search_file(csv_zip, folder = audit_xbrl_folder, file_type = "audit_xbrl")
-            self.results[key]["annual_xbrl"] = self.search_file(csv_zip, folder = annual_xbrl_folder, file_type = "annual_xbrl")
-            os.remove(xbrl_zip)
+            if kwargs.get("pdf", False) == True:
+                self.results[key]["pdf"] = self.api_download(key, folder, result_dict["pdf"])
+            else:
+                pass
 
             count += 1
             if show_progress: yield count
