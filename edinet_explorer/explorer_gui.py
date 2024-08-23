@@ -50,11 +50,17 @@ class App(ctk.CTk):
     def about_git():
         git_repo = "https://github.com/vincent-lpj/edinet-explorer"
         webbrowser.open(git_repo)
+    
+    @staticmethod
+    def about_edinet():
+        git_repo = "https://disclosure2dl.edinet-fsa.go.jp/guide/static/disclosure/WZEK0110.html"
+        webbrowser.open(git_repo)
 
     def set_menubar(self):
         menu_bar = MenuBar(self, background = "#e1edf0")
         about_menu = menu_bar.add_menu("About", background = "#e1edf0" , font = self.label_font)
         about_menu.add_command(label = "GitHub", command = self.about_git)
+        about_menu.add_command(label = "EDINET Guide", command = self.about_edinet)
         menu_bar.place()
     
     def set_main(self):
