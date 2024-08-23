@@ -7,6 +7,7 @@
 - [Installation](#installation)
 - [User Guidance Compliance](#user-guidance-compliance)
 - [Contribution Guidelines](#contribution-guidelines)
+- [Contact](#contact)
 - [License](#license)
 - [Acknowledgments](#Acknowledgments)
 
@@ -20,21 +21,32 @@
 
 ### Prerequisites
 - Python 3.8 or higher
-- `pip` (Python package installer)
+
+### API KEY
+An account is required to access EDINET API. 
+Check it at [EDIENT Guideline (Japanese)](https://disclosure2dl.edinet-fsa.go.jp/guide/static/disclosure/WZEK0110.html)
 
 ### Steps
-to be added
+pip installation will be available later.
+For now, You can clone the project:
+
+```
+$ git clone https://github.com/vincent-lpj/edinet-explorer.git
+$ cd edinet-explorer
+```
 
 ## User Guidance Compliance
-When using EDINET Explorer, you are accessing data from EDINET, which is managed by the Financial Services Agency of Japan. Please ensure that your use of this tool complies with the EDINET User Guidelines, which govern the proper use of data provided through their services. Misuse of the data or violation of these guidelines can lead to legal consequences.
+When using EDINET Explorer, you are accessing data from EDINET, which is managed by the Financial Services Agency of Japan. Please ensure that your use of this tool complies with the EDINET User Guidelines, which govern the proper use of data provided through their services. 
 
 By using this tool, you agree to adhere to these guidelines and take responsibility for ensuring that your actions conform to the rules set forth by EDINET.
 
 ## Contribution Guidelines
-Thank you for your interest in this project! As it is currently in the early stages of development, I am not yet accepting direct contributions (such as commits or pull requests). However, I warmly welcome any feedback, suggestions, or bug reports. If you have any thoughts or ideas to share, please feel free to open an issue.
+Thank you for your interest in this project! As it is currently in the early stages of development, I am not yet accepting direct contributions (such as commits or pull requests). However, I warmly welcome any feedback, suggestions, or bug reports. If you have any thoughts or ideas to share, please feel free to open an issue or email me :).
 
+## Contact
+You can reach me at vincentlpj.ou@gmail.com
 
-### License
+## License
 This project is licensed under the MIT License - see the LICENSE file for details.
 
 ## Acknowledgments
