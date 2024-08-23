@@ -26,7 +26,7 @@ class App(ctk.CTk):
             self.path = sys._MEIPASS
         else:
             self.path = os.path.dirname(__file__)
-        self.win_icon_path = os.path.join(self.path,"resources","icons","icon_win.ico") # Add icon using relative path
+        self.win_icon_path = os.path.join(self.path,  "resources","icons","icon_win.ico") # Add icon using relative path
         self.file_icon_path = os.path.join(self.path, "resources","icons","folder.png")    # Add icon using relative path
     
     # Set up root window
@@ -58,9 +58,19 @@ class App(ctk.CTk):
 
     def set_menubar(self):
         menu_bar = MenuBar(self, background = "#e1edf0")
+
+        setting_menu = menu_bar.add_menu("Setting", background = "#e1edf0" , font = self.label_font)
+        self.if_xbrl = ctk.BooleanVar()
+        self.if_pdf = ctk.BooleanVar()
+        self.if_csv = ctk.BooleanVar(value = True)
+        setting_menu.add_checkbutton(label="XBRL", variable = self.if_xbrl)
+        setting_menu.add_checkbutton(label="PDF", variable =  self.if_pdf)
+        setting_menu.add_checkbutton(label="CSV", variable = self.if_csv)
+
         about_menu = menu_bar.add_menu("About", background = "#e1edf0" , font = self.label_font)
         about_menu.add_command(label = "GitHub", command = self.about_git)
         about_menu.add_command(label = "EDINET Guide", command = self.about_edinet)
+
         menu_bar.place()
     
     def set_main(self):
@@ -306,7 +316,10 @@ class App(ctk.CTk):
                 progress_frame.place(relx = 0.1,rely = 0.5, relwidth = 0.8)
 
                 total_len = len(self.period.results.keys())
-                for count in self.period.get_documents(folder = self.folder_selector.get(), show_progress =True):
+                for count in self.period.get_documents(folder = self.folder_selector.get(), show_progress =True, 
+                                                       xbrl = self.if_xbrl.get(),
+                                                       csv = self.if_csv.get(),
+                                                       pdf = self.if_pdf.get()):
                     progress_str = f"{count}/{total_len}"
                     progress_count.set(progress_str)
                     info_progress.set(count/total_len)
@@ -314,7 +327,8 @@ class App(ctk.CTk):
 
                 info_win.destroy()          # Destroy progressbar window after finishing
             
-            except:
+            except Exception as e:
+                print(e)
                 CTkMessagebox(title = "Error",
                           fg_color = "transparent",
                           message= "Something wrong with download",
@@ -569,6 +583,7 @@ class App(ctk.CTk):
                         icon="check", 
                         option_1="Ok")
         else: pass
+
 
 class MenuBar(tk.Frame):
     def __init__(self, master, background: str = "white"):
