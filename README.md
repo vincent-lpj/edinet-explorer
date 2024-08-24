@@ -9,6 +9,7 @@
 - [Contribution Guidelines](#contribution-guidelines)
 - [Contact](#contact)
 - [License](#license)
+- [Citation](#citation)
 - [Acknowledgments](#Acknowledgments)
 
 ## Features
@@ -48,6 +49,23 @@ You can reach me at vincentlpj.ou@gmail.com
 
 ## License
 This project is licensed under the MIT License - see the LICENSE file for details.
+
+## Citation
+If this package was helpful in your work, feel free to cite it as:  
+```
+@misc{vincent-lpj2024, 
+    author = {Peijun Liu}, 
+    title = {EDINET Explorer}, 
+    year = {2024}, 
+    publisher = {GitHub}, 
+    journal = {GitHub Repository}, 
+    howpublished = {\url{https://github.com/vincent-lpj/edinet-explorer}}, }
+```
+
+Or simply:  
+```
+Liu, P. (2024). Edinet explorer [Computer software]. GitHub. https://github.com/vincent-lpj/edinet-explorer
+```
 
 ## Acknowledgments
 The icon used in this project was generated with the assistance of [ChatGPT by OpenAI](https://openai.com/chatgpt).
