@@ -1,4 +1,4 @@
-import explorer_gui
+from . import explorer_gui
 
 def main():
     # Initialize the application
