@@ -1,8 +1,8 @@
-from explorer_gui import App
+import explorer_gui
 
 def main():
     # Initialize the application
-    app = App()
+    app = explorer_gui.App()
     
     # Start the main loop
     app.mainloop()

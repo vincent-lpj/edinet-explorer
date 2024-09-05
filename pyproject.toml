@@ -1,0 +1,54 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "edinet-explorer"
+dynamic = ["version"]
+description = "A Python-based GUI application for data collection from EDINET"
+readme = "README.md"
+requires-python = ">=3.8"
+license = "MIT"
+keywords = ["edinet","annual reports","xbrl"]
+authors = [
+  { name = "Peijun Liu", email = "vincentlpj.ou@gmail.com" },
+]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3.8",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: Implementation :: CPython",
+  "Programming Language :: Python :: Implementation :: PyPy",
+]
+dependencies = ["requests", "pandas", "pillow", "customtkinter", "CTKMessagebox"]
+
+[project.urls]
+Source = "https://github.com/vincent-lpj/edinet-explorer"
+
+[project.scripts]
+edinet-explorer = "edinet_explorer.__main__:main"
+
+[tool.hatch.version]
+path = "src/edinet_explorer/__about__.py"
+
+[tool.coverage.run]
+source_pkgs = ["edinet_explorer"]
+branch = true
+parallel = true
+omit = [
+  "src/edinet_explorer/__about__.py",
+]
+
+[tool.coverage.paths]
+edinet_explorer = ["src/edinet_explorer", "*/edinet-explorer/src/edinet_explorer"]
+
+[tool.coverage.report]
+exclude_lines = [
+  "no cov",
+  "if __name__ == .__main__.:",
+  "if TYPE_CHECKING:",
+]
