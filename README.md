@@ -28,12 +28,15 @@ An account is required to access EDINET API.
 Check it at [EDINET Guideline (Japanese)](https://disclosure2dl.edinet-fsa.go.jp/guide/static/disclosure/WZEK0110.html)
 
 ### Steps
-pip installation will be available later.
-For now, You can clone the project:
+This project is now available on PyPI.
+You can install it as follows: 
 
 ```
-$ git clone https://github.com/vincent-lpj/edinet-explorer.git
-$ cd edinet-explorer
+$ pip install edinet-explorer
+```
+Then, you can run it directly in the terminal:
+```
+$ edinet-explorer
 ```
 
 ## User Guidance Compliance
