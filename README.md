@@ -22,7 +22,7 @@
 
 ### Prerequisites
 - Python 3.8 or higher
-NET
+
 ### API KEY
 An account is required to access EDINET API. 
 Check it at [EDINET Guideline (Japanese)](https://disclosure2dl.edinet-fsa.go.jp/guide/static/disclosure/WZEK0110.html)
