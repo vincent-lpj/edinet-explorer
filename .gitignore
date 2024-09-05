@@ -5,6 +5,8 @@ __pycache__/
 
 # Virtual environment
 edinet-explorer-env/
+/.env/
+/.venv/
 
 # PyInstaller
 *.manifest
