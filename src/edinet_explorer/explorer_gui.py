@@ -1,4 +1,4 @@
-from data_processor import Period
+from . import data_processor
 import tkinter as tk
 from tkinter import ttk
 import customtkinter as ctk
@@ -116,7 +116,7 @@ class App(ctk.CTk):
                                                 option_2 = "OK")
                 
                 if message_continue.get() == "OK":
-                    self.period = Period(json_path = os.path.join(filename,file))
+                    self.period = data_processor.Period(json_path = os.path.join(filename,file))
                     self.parse_button.configure(state = "normal") 
                     self.download_button.configure(state = "disabled") 
                     try:
@@ -222,7 +222,7 @@ class App(ctk.CTk):
                           icon="warning",
                           option_1 = "OK")
             return
-        self.period = Period(start_date = datetime.date(*map(int, self.start_entry.get().split('/'))), 
+        self.period = data_processor.Period(start_date = datetime.date(*map(int, self.start_entry.get().split('/'))), 
                         end_date = datetime.date(*map(int, self.end_entry.get().split('/'))), 
                         api_key = self.api_key.get())
         
