@@ -9,6 +9,8 @@ import csv
 import json
 import pandas as pd
 from typing import Literal
+from jtext import JText
+from collections import Counter
 
 class Period:
     def __init__(self, api_key = None, start_date = None, end_date = None, json_path = None) -> None:
@@ -267,6 +269,83 @@ class Period:
 
 
             else: pass
+        return result_dict
+
+    @staticmethod
+    def get_ngram(list_of_features: list[list], words_per_phrase:int) -> list[str]:
+        n_gram_list = []
+        for k in range(len(list_of_features) - words_per_phrase + 1):
+                if len(list_of_features[k]) < 9:
+                    pass
+                else:
+                    phrase = ""
+                    for i in range(words_per_phrase):
+                        try:
+                            phrase += list_of_features[k+i][8]                # the 9th (index 8) element of a feature list contains orth:  the word as it appears in text, this appears to be identical to the surface.
+                        except IndexError:
+                            phrase = ""
+                            break
+                        except:
+                            pass
+                        else:
+                            pass
+                    if phrase != "":
+                        n_gram_list.append(phrase)
+                    else:
+                        pass
+        return n_gram_list
+
+    def get_boilerplate(self, words_per_phrase: int = 8, bottom_percent: int = 30, top_percent:int = 80) -> dict[str, float]:
+        result_dict = {}                                    # this is what returns at last
+        total_dict = {}                                     # a dict with document ID as key and Counter of n-gram as value
+        boiler_counter = Counter()                          # a empty Counter that takes boilerplate n-gram as key and the number of file that n-gram appears as value
+
+        # loop the whole record 
+        for key in self.results.keys():
+            csv_path = self.results[key]["annual_csv"]
+            if csv_path:
+                try:
+                    # feed the csv path to JText instance and get the list of n-gram
+                    sub_jtext = JText(csv_path)
+                    sub_wakati = sub_jtext.wakati
+                    sub_ngram = self.get_ngram(sub_wakati,words_per_phrase)     # n-gram list
+                    sub_counter = Counter(sub_ngram)                            # a Counter for each file that takes n-gram as key and frequency as value
+                except:
+                    sub_counter = Counter()                                     # set an empty Counter if errors occur
+
+                finally:
+                    total_dict[key] = sub_counter
+                    sub_unique = sub_counter.copy()
+                    for n_gram in sub_unique:
+                        sub_unique[n_gram] = 1
+                    boiler_counter.update(sub_unique)
+
+        bottom_number = round(len(self.results.keys())*bottom_percent/100)             # total numbers of files * bottom-line ratio
+        top_number = round(len(self.results.keys())*top_percent/100)
+
+        for n_gram in list(boiler_counter.keys()):
+            if boiler_counter[n_gram] <= bottom_number:
+                del boiler_counter[n_gram]                                              # the n-gram is not boiler-plate if it is below the bottom-line number
+            elif boiler_counter[n_gram] >= top_number:
+                del boiler_counter[n_gram]                                              # the n-gram is not boiler-plate if it is above the top-line number
+            else:
+                pass
+        
+        # loop the whole record again
+        for key in total_dict.keys():
+            sub_counter = total_dict[key]
+            total_number = sub_counter.total()
+            boiler_number = 0 
+
+            for n_gram in sub_counter:
+                if n_gram in boiler_counter:
+                    boiler_number += sub_counter[n_gram]                        # count the occurrence only when it is in the boilerplate n-gram list 
+                else:
+                    pass
+            
+            boiler_ratio = boiler_number/total_number
+            result_dict[key] = boiler_ratio
+        
         return result_dict
 
     def save_json(self, folder:str):
