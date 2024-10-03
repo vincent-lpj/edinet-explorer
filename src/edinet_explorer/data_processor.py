@@ -11,6 +11,7 @@ import pandas as pd
 from typing import Literal
 from jtext import JText
 from collections import Counter
+from tqdm import tqdm
 
 class Period:
     def __init__(self, api_key = None, start_date = None, end_date = None, json_path = None) -> None:
@@ -270,45 +271,21 @@ class Period:
 
             else: pass
         return result_dict
-
-    @staticmethod
-    def get_ngram(list_of_features: list[list], words_per_phrase:int) -> list[str]:
-        n_gram_list = []
-        for k in range(len(list_of_features) - words_per_phrase + 1):
-                if len(list_of_features[k]) < 9:
-                    pass
-                else:
-                    phrase = ""
-                    for i in range(words_per_phrase):
-                        try:
-                            phrase += list_of_features[k+i][8]                # the 9th (index 8) element of a feature list contains orth:  the word as it appears in text, this appears to be identical to the surface.
-                        except IndexError:
-                            phrase = ""
-                            break
-                        except:
-                            pass
-                        else:
-                            pass
-                    if phrase != "":
-                        n_gram_list.append(phrase)
-                    else:
-                        pass
-        return n_gram_list
-
+ 
+    # Note: does not apply to gui yet; lack of dividision of each year (important)
     def get_boilerplate(self, words_per_phrase: int = 8, bottom_percent: int = 30, top_percent:int = 80) -> dict[str, float]:
         result_dict = {}                                    # this is what returns at last
         total_dict = {}                                     # a dict with document ID as key and Counter of n-gram as value
         boiler_counter = Counter()                          # a empty Counter that takes boilerplate n-gram as key and the number of file that n-gram appears as value
 
         # loop the whole record 
-        for key in self.results.keys():
+        for key in tqdm(self.results.keys()):
             csv_path = self.results[key]["annual_csv"]
             if csv_path:
                 try:
                     # feed the csv path to JText instance and get the list of n-gram
                     sub_jtext = JText(csv_path)
-                    sub_wakati = sub_jtext.wakati
-                    sub_ngram = self.get_ngram(sub_wakati,words_per_phrase)     # n-gram list
+                    sub_ngram = sub_jtext.get_ngram(words_per_phrase)           # n-gram list
                     sub_counter = Counter(sub_ngram)                            # a Counter for each file that takes n-gram as key and frequency as value
                 except:
                     sub_counter = Counter()                                     # set an empty Counter if errors occur
@@ -332,7 +309,7 @@ class Period:
                 pass
         
         # loop the whole record again
-        for key in total_dict.keys():
+        for key in tqdm(total_dict.keys()):
             sub_counter = total_dict[key]
             total_number = sub_counter.total()
             boiler_number = 0 
