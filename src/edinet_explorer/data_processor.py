@@ -351,9 +351,13 @@ class Period:
                         boiler_number += sub_counter[n_gram]                        # count the occurrence only when it is in the boilerplate n-gram list 
                     else:
                         pass
-                
-                boiler_ratio = boiler_number/total_number
-                result_dict[key] = boiler_ratio
+
+                try:
+                    boiler_ratio = boiler_number/total_number
+                except:
+                    boiler_ratio = 0
+                finally:
+                    result_dict[key] = boiler_ratio
 
         boiler_series = pd.Series(result_dict)
         df["boiler"] = boiler_series
