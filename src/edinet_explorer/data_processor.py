@@ -37,6 +37,8 @@ class Period:
             self.start_date = datetime.datetime.strptime(self.dates[0],'%Y/%m/%d')
             self.end_date = datetime.datetime.strptime(self.dates[-1],'%Y/%m/%d')
             self.days = int((self.end_date - self.start_date).days)
+            self.results_df = self._convert_to_dataframe()
+
 
     def _get_basics(self, api_key,start_date, end_date):
         self.api_key = api_key
@@ -69,6 +71,7 @@ class Period:
             if show_progress: 
                 yield count
             else: pass
+        self.results_df = self._convert_to_dataframe()
     
     @staticmethod
     def search_file(my_zip, folder, file_type: Literal["audit_csv", "annual_csv", "audit_xbrl", "annual_xbrl"]) -> str:
@@ -240,7 +243,32 @@ class Period:
                     sub_dict[row["項目名"]] = int(row["値"])
                 result_dict[key] = sub_dict
         return result_dict
-                
+    
+    # convert self.results from dictionary to a DataFrame
+    def _convert_to_dataframe(self) -> pd.DataFrame:
+        convert_dict = {}
+        check_keys = True
+        # check if the results dicts have the same keys
+        first_dict_keys = set(next(iter(self.results.values())).keys())
+        for sub_dict in self.results.values():
+            if set(sub_dict.keys()) != first_dict_keys:
+                check_keys = False
+
+        # convert to dataframe if it has the same keys
+        if check_keys == True:
+            for key in first_dict_keys:
+                convert_dict[key] = []
+            for sub_dict in self.results.values():
+                for key in sub_dict.keys():
+                    convert_dict[key].append(sub_dict[key])
+        results_df = pd.DataFrame(convert_dict)
+        results_df[["year","month","day"]] = results_df['periodEnd'].str.split("-", expand=True).astype(int)
+
+        results_df = results_df.drop_duplicates(subset=['secCode', 'year'])
+        results_df = results_df.sort_values(by=['secCode', 'year']).reset_index(drop=True)
+
+        return results_df
+
     def get_textual(self, items: dict = {"Textual Data":True}):
         result_dict = {}
         for key in self.results.keys():
@@ -324,6 +352,35 @@ class Period:
             result_dict[key] = boiler_ratio
         
         return result_dict
+
+
+    def get_stickiness(self, words_per_phrase: int = 8):
+        sticky_list = [0,]
+        df = self.results_df.copy()
+        for i in tqdm(range(1, len(self.results_df))):
+            current_row = self.results_df.iloc[i]
+            previous_row = self.results_df.iloc[i - 1]
+            if current_row['secCode'] == previous_row['secCode'] and current_row['year'] == previous_row['year'] + 1:
+                try:
+                    current_n_gram = Counter(JText(current_row["annual_csv"]).get_ngram(words_per_phrase))
+                    previous_n_gram = Counter(JText(previous_row["annual_csv"]).get_ngram(words_per_phrase))
+                    total = current_n_gram.total()
+                    count = 0
+                    for n_gram in current_n_gram.keys():
+                        if n_gram in previous_n_gram:
+                            count += current_n_gram[n_gram]
+                        else:
+                            pass
+                    sticky_ratio = count/total
+                except:
+                    sticky_ratio = 0
+            else:
+                sticky_ratio = 0
+            sticky_list.append(sticky_ratio)
+
+        df["stickiness"] = sticky_list
+        
+        return df
 
     def save_json(self, folder:str):
         self.json = {
