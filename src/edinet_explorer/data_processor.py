@@ -301,60 +301,66 @@ class Period:
         return result_dict
  
     # Note: does not apply to gui yet; lack of dividision of each year (important)
-    def get_boilerplate(self, words_per_phrase: int = 8, bottom_percent: int = 30, top_percent:int = 80) -> dict[str, float]:
-        result_dict = {}                                    # this is what returns at last
-        total_dict = {}                                     # a dict with document ID as key and Counter of n-gram as value
-        boiler_counter = Counter()                          # a empty Counter that takes boilerplate n-gram as key and the number of file that n-gram appears as value
+    def get_boilerplate(self, words_per_phrase: int = 8, bottom_percent: int = 30, top_percent:int = 80) -> pd.DataFrame:
+        df = self.results_df.copy()                             # this is what returns at last
+        year_group = df.groupby("year")
+        result_dict = {}                                        # this is the new column
+        for year in year_group.groups.keys():
+            print(f"Dealing with data in {year}")
+            total_dict = {}                                     # a dict with document ID as key and Counter of n-gram as value
+            boiler_counter = Counter()                          # a empty Counter that takes boilerplate n-gram as key and the number of file that n-gram appears as value
+            
+            for index in tqdm(year_group.groups[year]):
+                csv_path = df.iloc[index]["annual_csv"]
+                if csv_path:
+                    try:
+                        # feed the csv path to JText instance and get the list of n-gram
+                        sub_jtext = JText(csv_path)
+                        sub_ngram = sub_jtext.get_ngram(words_per_phrase)           # n-gram list
+                        sub_counter = Counter(sub_ngram)                            # a Counter for each file that takes n-gram as key and frequency as value
+                    except:
+                        sub_counter = Counter()                                     # set an empty Counter if errors occur
 
-        # loop the whole record 
-        for key in tqdm(self.results.keys()):
-            csv_path = self.results[key]["annual_csv"]
-            if csv_path:
-                try:
-                    # feed the csv path to JText instance and get the list of n-gram
-                    sub_jtext = JText(csv_path)
-                    sub_ngram = sub_jtext.get_ngram(words_per_phrase)           # n-gram list
-                    sub_counter = Counter(sub_ngram)                            # a Counter for each file that takes n-gram as key and frequency as value
-                except:
-                    sub_counter = Counter()                                     # set an empty Counter if errors occur
+                    finally:
+                        total_dict[index] = sub_counter
+                        sub_unique = sub_counter.copy()
+                        for n_gram in sub_unique:
+                            sub_unique[n_gram] = 1
+                        boiler_counter.update(sub_unique)
+                else:
+                    pass
+            bottom_number = round(len(year_group.groups[year])*bottom_percent/100)             # total numbers of files * bottom-line ratio
+            top_number = round(len(year_group.groups[year])*top_percent/100)
 
-                finally:
-                    total_dict[key] = sub_counter
-                    sub_unique = sub_counter.copy()
-                    for n_gram in sub_unique:
-                        sub_unique[n_gram] = 1
-                    boiler_counter.update(sub_unique)
-
-        bottom_number = round(len(self.results.keys())*bottom_percent/100)             # total numbers of files * bottom-line ratio
-        top_number = round(len(self.results.keys())*top_percent/100)
-
-        for n_gram in list(boiler_counter.keys()):
-            if boiler_counter[n_gram] <= bottom_number:
-                del boiler_counter[n_gram]                                              # the n-gram is not boiler-plate if it is below the bottom-line number
-            elif boiler_counter[n_gram] >= top_number:
-                del boiler_counter[n_gram]                                              # the n-gram is not boiler-plate if it is above the top-line number
-            else:
-                pass
-        
-        # loop the whole record again
-        for key in tqdm(total_dict.keys()):
-            sub_counter = total_dict[key]
-            total_number = sub_counter.total()
-            boiler_number = 0 
-
-            for n_gram in sub_counter:
-                if n_gram in boiler_counter:
-                    boiler_number += sub_counter[n_gram]                        # count the occurrence only when it is in the boilerplate n-gram list 
+            for n_gram in list(boiler_counter.keys()):
+                if boiler_counter[n_gram] <= bottom_number:
+                    del boiler_counter[n_gram]                                              # the n-gram is not boiler-plate if it is below the bottom-line number
+                elif boiler_counter[n_gram] >= top_number:
+                    del boiler_counter[n_gram]                                              # the n-gram is not boiler-plate if it is above the top-line number
                 else:
                     pass
             
-            boiler_ratio = boiler_number/total_number
-            result_dict[key] = boiler_ratio
-        
-        return result_dict
+            # loop the whole record again
+            for key in total_dict.keys():
+                sub_counter = total_dict[key]
+                total_number = sub_counter.total()
+                boiler_number = 0 
 
+                for n_gram in sub_counter:
+                    if n_gram in boiler_counter:
+                        boiler_number += sub_counter[n_gram]                        # count the occurrence only when it is in the boilerplate n-gram list 
+                    else:
+                        pass
+                
+                boiler_ratio = boiler_number/total_number
+                result_dict[key] = boiler_ratio
 
-    def get_stickiness(self, words_per_phrase: int = 8):
+        boiler_series = pd.Series(result_dict)
+        df["boiler"] = boiler_series
+
+        return df
+
+    def get_stickiness(self, words_per_phrase: int = 8) ->pd.DataFrame:
         sticky_list = [0,]
         df = self.results_df.copy()
         for i in tqdm(range(1, len(self.results_df))):
