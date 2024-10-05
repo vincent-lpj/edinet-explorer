@@ -302,7 +302,7 @@ class Period:
  
     # Note: does not apply to gui yet; lack of dividision of each year (important)
     def get_boilerplate(self, words_per_phrase: int = 8, bottom_percent: int = 30, top_percent:int = 80) -> pd.DataFrame:
-        df = self.results_df.copy()                             # this is what returns at last
+        df = self.results_df.copy()                            # this is what returns at last
         year_group = df.groupby("year")
         result_dict = {}                                        # this is the new column
         for year in year_group.groups.keys():
@@ -328,7 +328,7 @@ class Period:
                             sub_unique[n_gram] = 1
                         boiler_counter.update(sub_unique)
                 else:
-                    pass
+                    total_dict[index] = Counter()                                              # set an empty Counter if there is no csv file
             bottom_number = round(len(year_group.groups[year])*bottom_percent/100)             # total numbers of files * bottom-line ratio
             top_number = round(len(year_group.groups[year])*top_percent/100)
 
